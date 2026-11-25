@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<!--
+=========================================================================
+ PLANTILLA DEL REPORTE · afore-auditor-dao v3
+ Ubicación en el workspace: .github/agents/afore-auditor-dao.plantilla.html
+
+ Instrucciones para el agente (no se copian al reporte):
+ 1. Copia este archivo completo a reportes-dao/<NombreClase>_<alcance>_<AAAAMMDD-HHmm>.html.
+ 2. Sustituye todos los datos de ejemplo (AfoSolicitudDAO, actualizarEstatusSolicitud, etc.).
+ 3. Cada método es una copia del bloque entre INICIO-MODELO-METODO y FIN-MODELO-METODO.
+    Los nuevos métodos se insertan justo antes del marcador @@SIGUIENTE-METODO@@.
+    Las entradas del índice se insertan justo antes de @@SIGUIENTE-INDICE@@.
+ 4. No borres los marcadores @@...@@: permiten agregar lotes al mismo archivo.
+ 5. Escapa SIEMPRE en el texto: & como &amp;  < como &lt;  > como &gt;
+    (en <pre><code>, en celdas de tabla, en listas y en párrafos).
+ 6. Autocontenido: no agregues CDN, fuentes externas, imágenes ni scripts externos.
+ 7. Elimina este comentario de instrucciones en el reporte generado.
+=========================================================================
+-->
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Auditoría DAO · AfoSolicitudDAO</title>
+
+    <style>
+
+        :root {
+            --bg: #0f1117;
+            --card: #171a21;
+            --card-header: #15181e;
+            --border: #2b313d;
+            --text: #e6e9ef;
+            --muted: #9da5b4;
+            --accent: #61dafb;
+            --success: #27c93f;
+
+            /* Agregados v3: colores de severidad */
+            --critical: #ff5f56;
+            --critical-bg: rgba(255, 95, 86, 0.08);
+            --warning: #ffbd2e;
+            --warning-bg: rgba(255, 189, 46, 0.08);
+            --safe: #27c93f;
+            --safe-bg: rgba(39, 201, 63, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+
+            background:
+                radial-gradient(
+                    circle at top,
+                    rgba(97, 218, 251, 0.08),
+                    transparent 45%
+                ),
+                var(--bg);
+
+            color: var(--text);
+
+            font-family:
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* =====================================================
+           CONTENEDOR PRINCIPAL
+        ===================================================== */
+
+        .documentation {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 50px 30px 80px;
+        }
+
+        /* =====================================================
+           TÍTULO DEL PROYECTO
+        ===================================================== */
+
+        .project-header {
+            margin-bottom: 40px;
+        }
+
+        .project-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 0 0 15px;
+            font-size: clamp(2rem, 5vw, 3.3rem);
+            line-height: 1.1;
+        }
+
+        .project-icon {
+            width: 58px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 1px solid rgba(97, 218, 251, 0.3);
+            border-radius: 14px;
+            background: rgba(97, 218, 251, 0.08);
+            font-size: 1.7rem;
+        }
+
+        .project-description {
+            max-width: 850px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        /* =====================================================
+           INFORMACIÓN
+        ===================================================== */
+
+        .project-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 45px;
+        }
+
+        .info-card {
+            padding: 17px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .info-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #6f7785;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+
+        /* =====================================================
+           AGREGADO v3 · TARJETAS DE CONTEO
+        ===================================================== */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--card);
+        }
+
+        .stat-card .stat-number {
+            display: block;
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .stat-card .stat-label {
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .stat-critical { border-color: rgba(255, 95, 86, 0.4); background: var(--critical-bg); }
+        .stat-critical .stat-number { color: var(--critical); }
+        .stat-warning { border-color: rgba(255, 189, 46, 0.4); background: var(--warning-bg); }
+        .stat-warning .stat-number { color: var(--warning); }
+        .stat-safe { border-color: rgba(39, 201, 63, 0.4); background: var(--safe-bg); }
+        .stat-safe .stat-number { color: var(--safe); }
+
+        /* =====================================================
+           SECCIONES
+        ===================================================== */
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 10px;
+            font-size: 1.45rem;
+        }
+
+        .section-icon {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: var(--card);
+            font-size: 1rem;
+        }
+
+        .section-description {
+            margin: 0 0 20px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .subsection-title {
+            margin: 28px 0 12px;
+            color: var(--text);
+            font-size: 1.05rem;
+        }
+
+        /* =====================================================
+           TEXTO
+        ===================================================== */
+
+        .description-card {
+            padding: 22px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .description-card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+
+        .description-card p + p {
+            margin-top: 12px;
+        }
+
+        /* Agregado v3: listas dentro de tarjetas */
+
+        .description-card ul,
+        .description-card ol {
+            margin: 0;
+            padding-left: 22px;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+
+        .description-card li + li {
+            margin-top: 8px;
+        }
+
+        .description-card strong {
+            color: var(--text);
+        }
+
+        .description-card p code,
+        .description-card li code,
+        .findings code,
+        .explanation code,
+        .toc code {
+            padding: 1px 5px;
+            border-radius: 4px;
+            background: #1e232d;
+            color: #d8dee9;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.82em;
+        }
+
+        /* =====================================================
+           AGREGADO v3 · ÍNDICE
+        ===================================================== */
+
+        .toc ol {
+            margin: 0;
+            padding-left: 22px;
+            line-height: 2;
+            font-size: 0.9rem;
+        }
+
+        .toc .toc-batch {
+            margin: 14px 0 4px;
+            color: #6f7785;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* =====================================================
+           AGREGADO v3 · INSIGNIAS DE SEVERIDAD
+        ===================================================== */
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-critical { color: var(--critical); background: var(--critical-bg); border: 1px solid rgba(255, 95, 86, 0.35); }
+        .badge-warning { color: var(--warning); background: var(--warning-bg); border: 1px solid rgba(255, 189, 46, 0.35); }
+        .badge-safe { color: var(--safe); background: var(--safe-bg); border: 1px solid rgba(39, 201, 63, 0.35); }
+
+        /* =====================================================
+           AGREGADO v3 · ENCABEZADO DE MÉTODO
+        ===================================================== */
+
+        .method {
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .method-signature {
+            display: block;
+            margin: 0 0 12px;
+            padding: 12px 15px;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #111318;
+            color: #d8dee9;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .method-safe-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--card);
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .method-safe-line + .method-safe-line {
+            margin-top: 8px;
+        }
+
+        /* =====================================================
+           AGREGADO v3 · TABLA DE HALLAZGOS
+        ===================================================== */
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .findings {
+            width: 100%;
+            min-width: 760px;
+            border-collapse: collapse;
+            background: var(--card);
+            font-size: 0.84rem;
+        }
+
+        .findings th {
+            padding: 11px 12px;
+            background: var(--card-header);
+            border-bottom: 1px solid var(--border);
+            color: #6f7785;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .findings td {
+            padding: 11px 12px;
+            border-bottom: 1px solid var(--border);
+            color: var(--muted);
+            line-height: 1.55;
+            vertical-align: top;
+        }
+
+        .findings tr:last-child td {
+            border-bottom: none;
+        }
+
+        .findings td.rule {
+            color: var(--text);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* =====================================================
+           ANTES / DESPUÉS
+        ===================================================== */
+
+        .comparison {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .comparison-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .before .comparison-title {
+            color: #ff8b85;
+        }
+
+        .after .comparison-title {
+            color: #62d875;
+        }
+
+        /* =====================================================
+           BLOQUE DE CÓDIGO
+        ===================================================== */
+
+        .code-card {
+            overflow: hidden;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        .code-header {
+            min-height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 9px 12px;
+            background: var(--card-header);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-header-left {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            min-width: 0;
+        }
+
+        /* =====================================================
+           DOTS
+        ===================================================== */
+
+        .dots {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .red {
+            background: #ff5f56;
+        }
+
+        .yellow {
+            background: #ffbd2e;
+        }
+
+        .green {
+            background: #27c93f;
+        }
+
+        /* =====================================================
+           NOMBRE DEL ARCHIVO
+        ===================================================== */
+
+        .file-name {
+            color: #858d9a;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.75rem;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        /* =====================================================
+           BOTÓN COPIAR
+        ===================================================== */
+
+        .copy-button {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #1e232d;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-button:hover {
+            color: var(--text);
+            background: #252b36;
+            border-color: #454d5b;
+        }
+
+        .copy-button.copied {
+            color: var(--success);
+            border-color: rgba(39, 201, 63, 0.4);
+        }
+
+        /* =====================================================
+           CÓDIGO
+        ===================================================== */
+
+        .code-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        pre {
+            margin: 0;
+            padding: 22px;
+            min-width: max-content;
+            background: #111318;
+            color: #d8dee9;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.85rem;
+            line-height: 1.65;
+            tab-size: 4;
+        }
+
+        code {
+            font-family: inherit;
+        }
+
+        /* =====================================================
+           EXPLICACIÓN
+        ===================================================== */
+
+        .explanation {
+            margin-top: 15px;
+            padding: 15px 18px;
+            border-left: 3px solid var(--accent);
+            background: rgba(97, 218, 251, 0.04);
+            color: var(--muted);
+            font-size: 0.85rem;
+            line-height: 1.7;
+        }
+
+        /* Agregado v3: variantes de nota */
+
+        .explanation.pending {
+            border-left-color: var(--warning);
+            background: var(--warning-bg);
+        }
+
+        .explanation.impact {
+            border-left-color: var(--critical);
+            background: var(--critical-bg);
+        }
+
+        .explanation ul,
+        .explanation ol {
+            margin: 6px 0 0;
+            padding-left: 20px;
+        }
+
+        .explanation strong {
+            color: var(--text);
+        }
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 800px) {
+
+            .documentation {
+                padding: 35px 20px 60px;
+            }
+
+            .project-info,
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .documentation {
+                padding: 25px 15px 50px;
+            }
+
+            .project-title {
+                font-size: 1.8rem;
+            }
+
+            .project-icon {
+                width: 46px;
+                height: 46px;
+                font-size: 1.3rem;
+            }
+
+            .copy-text {
+                display: none;
+            }
+
+            .copy-button {
+                padding: 7px 9px;
+            }
+
+            pre {
+                padding: 17px;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Agregado v3: impresión / exportación a PDF */
+
+        @media print {
+
+            body {
+                background: #ffffff;
+                color: #000000;
+            }
+
+            .copy-button {
+                display: none;
+            }
+
+            .code-wrapper {
+                overflow: visible;
+            }
+
+            pre {
+                min-width: 0;
+                white-space: pre-wrap;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<main class="documentation">
+
+
+    <!-- =====================================================
+         ENCABEZADO DEL REPORTE
+    ===================================================== -->
+
+    <header class="project-header">
+
+        <h1 class="project-title">
+
+            <span class="project-icon">☕</span>
+
+            Auditoría DAO · AfoSolicitudDAO
+
+        </h1>
+
+        <p class="project-description">
+            Reporte de auditoría de solo lectura generado por el agente
+            afore-auditor-dao v3. Contiene los hallazgos por método, el código
+            antes y después de la reestructuración (Java 8) y el plan de refactor.
+            El código fuente no fue modificado.
+        </p>
+
+    </header>
+
+
+    <!-- =====================================================
+         INFORMACIÓN DE LA EJECUCIÓN
+    ===================================================== -->
+
+    <section class="project-info">
+
+        <div class="info-card">
+            <span class="info-label">Clase auditada</span>
+            <span class="info-value">AfoSolicitudDAO.java</span>
+        </div>
+
+        <div class="info-card">
+            <span class="info-label">Alcance</span>
+            <span class="info-value">1 método · actualizarEstatusSolicitud</span>
+        </div>
+
+        <div class="info-card">
+            <span class="info-label">Tecnología</span>
+            <span class="info-value">Java 8 · Oracle 19c · WebLogic 12.2.1.4</span>
+        </div>
+
+        <div class="info-card">
+            <span class="info-label">Fecha</span>
+            <span class="info-value">2026-11-25 09:00</span>
+        </div>
+
+        <div class="info-card">
+            <span class="info-label">Lotes</span>
+            <span class="info-value">1 de 1</span>
+        </div>
+
+        <div class="info-card">
+            <span class="info-label">Agente</span>
+            <span class="info-value">afore-auditor-dao v3</span>
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         1. RESUMEN EJECUTIVO
+         Los números cuentan HALLAZGOS 🔴 y 🟡, y MÉTODOS 🟢 (sin hallazgos).
+         En ejecuciones por lotes se actualizan al terminar el último lote.
+    ===================================================== -->
+
+    <section class="section" id="resumen">
+
+        <h2 class="section-title">
+            <span class="section-icon">📊</span>
+            Resumen ejecutivo
+        </h2>
+
+        <div class="stats">
+
+            <div class="stat-card stat-critical">
+                <span class="stat-number">7</span>
+                <span class="stat-label">🔴 Hallazgos críticos</span>
+            </div>
+
+            <div class="stat-card stat-warning">
+                <span class="stat-number">3</span>
+                <span class="stat-label">🟡 Advertencias</span>
+            </div>
+
+            <div class="stat-card stat-safe">
+                <span class="stat-number">0</span>
+                <span class="stat-label">🟢 Métodos seguros</span>
+            </div>
+
+        </div>
+
+        <div class="description-card">
+            <p><strong>Riesgos principales:</strong></p>
+            <ol>
+                <li>SQL concatenado con datos del VO (inyección SQL, OWASP A03:2021).</li>
+                <li>Recursos JDBC como campos de la clase, que impiden el cierre correcto y no son seguros entre hilos.</li>
+                <li>El NSS se registra en los logs.</li>
+            </ol>
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         2. ADVERTENCIAS DE CLASE (una sola vez por clase)
+    ===================================================== -->
+
+    <section class="section" id="advertencias">
+
+        <h2 class="section-title">
+            <span class="section-icon">⚠️</span>
+            Advertencias de clase
+        </h2>
+
+        <p class="section-description">
+            Campos de la clase que deben eliminarse cuando ningún método los utilice.
+        </p>
+
+        <div class="code-card">
+
+            <div class="code-header">
+                <div class="code-header-left">
+                    <div class="dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="file-name">AfoSolicitudDAO.java · campos</span>
+                </div>
+                <button class="copy-button" onclick="copyCode(this)" type="button">
+                    <span>📋</span>
+                    <span class="copy-text">Copiar</span>
+                </button>
+            </div>
+
+            <div class="code-wrapper">
+<pre><code>private PreparedStatement ps = null;          // DAO-ESTADO-01
+private Statement st = null;                  // DAO-ESTADO-01
+private ResultSet rs = null;                  // DAO-ESTADO-01
+private CallableStatement cs = null;          // DAO-ESTADO-01
+private static final String COMMIT = "COMMIT"; // DAO-TX-01: queda sin uso</code></pre>
+            </div>
+
+        </div>
+
+        <div class="description-card" style="margin-top: 15px;">
+            <ul>
+                <li><strong>Por qué:</strong> un campo de instancia vive mientras viva el objeto DAO, no mientras dure el método. Si un método abre <code>ps</code> y otro lo reasigna antes de cerrarlo, el primer <code>PreparedStatement</code> queda abierto. Try-with-resources solo cierra variables declaradas en su propio encabezado.</li>
+                <li><strong><code>COMMIT</code>:</strong> la constante solo existe para <code>st.execute(COMMIT)</code>. Al corregir DAO-TX-01 se convierte en código muerto.</li>
+                <li><strong>Cuándo eliminarlos:</strong> cuando todos los métodos estén migrados. Métodos que aún los usan: requiere verificación con la búsqueda de referencias de cada campo.</li>
+                <li><strong>Niveles de log (DAO-LOG-01):</strong> el éxito se registra con <code>LOGGER.error</code> y el error con <code>LOGGER.info</code>. La convención es la inversa.</li>
+                <li><strong>Imports sin uso (R-SON · S1128):</strong> ninguno detectado. Si existieran, se listan aquí y no se eliminan.</li>
+            </ul>
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         3. ÍNDICE DE MÉTODOS (orden por severidad descendente)
+    ===================================================== -->
+
+    <section class="section toc" id="indice">
+
+        <h2 class="section-title">
+            <span class="section-icon">🧭</span>
+            Índice de métodos
+        </h2>
+
+        <div class="description-card">
+            <div class="toc-batch">Lote 1</div>
+            <ol>
+                <li><a href="#m-actualizarEstatusSolicitud"><code>actualizarEstatusSolicitud(SolicitudVO)</code></a> <span class="badge badge-critical">🔴 Crítico</span></li>
+                <!-- @@SIGUIENTE-INDICE@@ -->
+            </ol>
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         4. DETALLE POR MÉTODO
+    ===================================================== -->
+
+    <!-- INICIO-MODELO-METODO · copiar este bloque completo por cada método 🔴 o 🟡 -->
+
+    <section class="section method" id="m-actualizarEstatusSolicitud">
+
+        <h2 class="section-title">
+            <span class="section-icon">🔴</span>
+            actualizarEstatusSolicitud
+        </h2>
+
+        <code class="method-signature">public String actualizarEstatusSolicitud(SolicitudVO vo)</code>
+
+        <p class="section-description">
+            Estado: <span class="badge badge-critical">🔴 Crítico</span>
+            · Operación: escritura (UPDATE) · Lote 1
+        </p>
+
+
+        <!-- 4.1 TABLA DE HALLAZGOS (orden por severidad) -->
+
+        <h3 class="subsection-title">Hallazgos</h3>
+
+        <div class="table-wrapper">
+            <table class="findings">
+                <thead>
+                    <tr>
+                        <th>Severidad</th>
+                        <th>Regla</th>
+                        <th>Ubicación</th>
+                        <th>Qué pasa</th>
+                        <th>Corrección</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-critical">🔴 Alta</span></td>
+                        <td class="rule">R-SEC · OWASP A03:2021</td>
+                        <td>Construcción de <code>sql</code></td>
+                        <td>Estatus e ID concatenados en el SQL</td>
+                        <td><code>PreparedStatement</code> con <code>?</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-critical">🔴 Alta</span></td>
+                        <td class="rule">R-LOG</td>
+                        <td>Ambos <code>LOGGER</code></td>
+                        <td>Se registra el NSS</td>
+                        <td>Quitar el NSS; usar el ID de solicitud</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-critical">🔴 Alta</span></td>
+                        <td class="rule">R-REC · S2095</td>
+                        <td><code>getConnection()</code> y <code>finally</code></td>
+                        <td>La <code>Connection</code> nunca se cierra; cierre manual en <code>finally</code></td>
+                        <td>Un solo try-with-resources</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-critical">🔴 Alta</span></td>
+                        <td class="rule">DAO-ESTADO-01</td>
+                        <td>Uso de <code>ps</code> y <code>st</code></td>
+                        <td>Recursos como campos de la clase</td>
+                        <td>Variables locales en try-with-resources</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-critical">🔴 Alta</span></td>
+                        <td class="rule">DAO-TX-01</td>
+                        <td><code>st.execute(COMMIT)</code></td>
+                        <td>Commit con SQL textual</td>
+                        <td>Sin COMMIT en el DAO; lo orquesta la BI [CONFIRMAR]</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-critical">🔴 Alta</span></td>
+                        <td class="rule">DAO-RET-01</td>
+                        <td>Tipo de retorno</td>
+                        <td>Escritura que devuelve <code>"OK"</code>/<code>"ERROR"</code></td>
+                        <td>Devolver <code>int</code> de <code>executeUpdate</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-critical">🔴 Alta</span></td>
+                        <td class="rule">DAO-VAL-01</td>
+                        <td>Inicio del método</td>
+                        <td>El <code>WHERE</code> depende de un ID sin validar</td>
+                        <td>Validar antes del <code>try</code> [CONFIRMAR]</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-warning">🟡 Media</span></td>
+                        <td class="rule">DAO-EXEC-01</td>
+                        <td><code>ps.execute()</code></td>
+                        <td><code>execute()</code> genérico para un UPDATE</td>
+                        <td><code>executeUpdate()</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-warning">🟡 Media</span></td>
+                        <td class="rule">DAO-ERR-01</td>
+                        <td><code>catch</code></td>
+                        <td>La <code>SQLException</code> se convierte en <code>"ERROR"</code></td>
+                        <td>Registrar y relanzar</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-warning">🟡 Media</span></td>
+                        <td class="rule">DAO-LOG-01</td>
+                        <td>Ambos <code>LOGGER</code></td>
+                        <td><code>error</code> en el éxito, <code>info</code> en el error</td>
+                        <td><code>info</code> fuera del <code>catch</code>, <code>error</code> dentro</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+        <!-- 4.2 ANTES / DESPUÉS -->
+
+        <h3 class="subsection-title">Antes y después</h3>
+
+        <p class="section-description">
+            El Antes es el método completo tal como se encuentra, con los campos que usa.
+            El Después es el método completo reestructurado en Java 8, sin imports nuevos,
+            con los comentarios originales conservados y un comentario con el ID de regla en cada cambio.
+        </p>
+
+        <div class="comparison">
+
+            <!-- ANTES -->
+
+            <div class="before">
+
+                <div class="comparison-title">✕ Antes · tal como se encuentra</div>
+
+                <div class="code-card">
+
+                    <div class="code-header">
+                        <div class="code-header-left">
+                            <div class="dots">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+                            <span class="file-name">AfoSolicitudDAO.java</span>
+                        </div>
+                        <button class="copy-button" onclick="copyCode(this)" type="button">
+                            <span>📋</span>
+                            <span class="copy-text">Copiar</span>
+                        </button>
+                    </div>
+
+                    <div class="code-wrapper">
+<pre><code>public class AfoSolicitudDAO extends DAOJdbc {
+
+    private static final Logger LOGGER = Logger.getLogger(AfoSolicitudDAO.class);
+    private static final String COMMIT = "COMMIT";
+
+    private PreparedStatement ps = null;
+    private Statement st = null;
+    private ResultSet rs = null;
+    private CallableStatement cs = null;
+
+    public String actualizarEstatusSolicitud(SolicitudVO vo) {
+        String resultado = "OK";
+        try {
+            Connection con = this.conexion.getConnection();
+            String sql = "UPDATE AFO_SOLICITUD SET ESTATUS = '" + vo.getEstatus()
+                       + "' WHERE ID_SOLICITUD = " + vo.getIdSolicitud();
+            ps = con.prepareStatement(sql);
+            ps.execute();
+            st = con.createStatement();
+            st.execute(COMMIT);
+            LOGGER.error("Estatus actualizado para NSS " + vo.getNss());
+        } catch (SQLException e) {
+            LOGGER.info("Error al actualizar: " + e.getMessage() + " NSS " + vo.getNss());
+            resultado = "ERROR";
+        } finally {
+            cierreConexiones(rs, ps, st);
+        }
+        return resultado;
+    }
+}</code></pre>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- DESPUÉS -->
+
+            <div class="after">
+
+                <div class="comparison-title">✓ Después · Java 8</div>
+
+                <div class="code-card">
+
+                    <div class="code-header">
+                        <div class="code-header-left">
+                            <div class="dots">
+                                <span class="dot red"></span>
+                                <span class="dot yellow"></span>
+                                <span class="dot green"></span>
+                            </div>
+                            <span class="file-name">AfoSolicitudDAO.java · propuesta</span>
+                        </div>
+                        <button class="copy-button" onclick="copyCode(this)" type="button">
+                            <span>📋</span>
+                            <span class="copy-text">Copiar</span>
+                        </button>
+                    </div>
+
+                    <div class="code-wrapper">
+<pre><code>/**
+ * Actualiza el estatus de una solicitud.
+ *
+ * @param vo datos de la solicitud; requiere ID_SOLICITUD y estatus.
+ * @return número de filas afectadas (0 si no existe la solicitud o faltan llaves).
+ */
+public int actualizarEstatusSolicitud(SolicitudVO vo) {
+    // Convención del equipo: SQL como variable local final, armado FUERA del try.
+    // R-SEC: parámetros enlazados, sin concatenación.
+    final String sql = "UPDATE AFO_SOLICITUD SET ESTATUS = ? WHERE ID_SOLICITUD = ?";
+
+    // DAO-VAL-01: se validan las llaves ANTES de abrir la conexión.
+    // [CONFIRMAR] Decisión del equipo: retornar 0 o lanzar excepción.
+    if (vo == null || vo.getIdSolicitud() == null || esVacio(vo.getEstatus())) {
+        // DAO-LOG-01: flujo normal (no es excepción) → info.
+        LOGGER.info("actualizarEstatusSolicitud(): llaves incompletas, no se ejecuta el UPDATE");
+        return 0;
+    }
+
+    // R-REC y DAO-ESTADO-01: un solo try-with-resources con Connection y
+    // PreparedStatement locales; se cierran solos, aun si ocurre una excepción.
+    try (Connection con = getConnection();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setString(1, vo.getEstatus());
+        ps.setLong(2, vo.getIdSolicitud()); // tipo de la columna: requiere verificación
+
+        // DAO-EXEC-01: executeUpdate para DML.
+        // DAO-RET-01: el retorno útil son las filas afectadas.
+        int filas = ps.executeUpdate();
+
+        // DAO-TX-01: sin execute(COMMIT). [CONFIRMAR] autoCommit / JTA en WebLogic.
+
+        // DAO-LOG-01 y R-LOG: éxito con info, sin datos sensibles.
+        LOGGER.info("actualizarEstatusSolicitud(): filas afectadas = " + filas);
+        return filas;
+
+    } catch (SQLException e) {
+        // DAO-LOG-01: dentro del catch → error, con la excepción completa.
+        // R-LOG: se registra el ID de la solicitud, nunca el NSS ni la CURP.
+        LOGGER.error("Error en actualizarEstatusSolicitud() de AfoSolicitudDAO. ID_SOLICITUD = "
+                + vo.getIdSolicitud(), e);
+        // DAO-ERR-01: el error no se convierte en estatus; se relanza con la
+        // excepción que la clase ya importa. Nombre: requiere verificación.
+        throw new ExcepcionDAO("No fue posible actualizar el estatus de la solicitud", e);
+    }
+}
+
+/** Considera vacío un valor nulo, en blanco o con el texto literal "null" (datos legacy). */
+private static boolean esVacio(String valor) {
+    return valor == null || valor.trim().isEmpty() || "null".equalsIgnoreCase(valor.trim());
+}</code></pre>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- 4.3 VERIFICACIÓN DEL DESPUÉS (sección 14 del agente) -->
+
+        <div class="explanation">
+            <strong>Verificación del Después:</strong>
+            Java 8 ✓ · Sin imports nuevos ✓ · Sin clases de armado de SQL ✓ ·
+            <code>final String sql</code> fuera del try ✓ · Un solo try-with-resources ✓ ·
+            Comentarios originales conservados: 0 de 0 ✓
+        </div>
+
+
+        <!-- 4.4 POR QUÉ SE REESTRUCTURÓ ASÍ -->
+
+        <h3 class="subsection-title">Por qué se reestructuró así</h3>
+
+        <div class="description-card">
+            <ol>
+                <li><strong>SQL con <code>?</code> (R-SEC).</strong> El estatus se concatenaba entre comillas: un valor como <code>X' WHERE 1=1 --</code> actualizaría todas las solicitudes. Con parámetros, Oracle trata el valor como dato y reutiliza el plan de ejecución.</li>
+                <li><strong>Validación antes del <code>try</code> (DAO-VAL-01).</strong> Evita ocupar una conexión del pool para descubrir que faltaban datos. Se eligió <code>return 0</code> porque cumple el contrato sin cambiar el flujo de los llamadores.</li>
+                <li><strong>Un solo try-with-resources (R-REC, DAO-ESTADO-01).</strong> <code>Connection</code> y <code>PreparedStatement</code> se declaran juntos en el encabezado; Java los cierra en orden inverso, también con excepción. Se eliminan <code>cierreConexiones(...)</code> y el <code>finally</code>.</li>
+                <li><strong><code>executeUpdate()</code> y retorno <code>int</code> (DAO-EXEC-01, DAO-RET-01).</strong> <code>execute()</code> indica si hay un <code>ResultSet</code>, no si se actualizó algo. <code>executeUpdate()</code> devuelve las filas afectadas.</li>
+                <li><strong>Sin <code>COMMIT</code> textual (DAO-TX-01).</strong> El segundo <code>Statement</code> nunca se cerraba y decidía la transacción desde el DAO.</li>
+                <li><strong>Niveles de log (DAO-LOG-01) y sin NSS (R-LOG).</strong> <code>info</code> en el flujo normal, <code>error</code> con la excepción completa en el <code>catch</code>; se registra el <code>ID_SOLICITUD</code>.</li>
+                <li><strong>Relanzar en lugar de <code>"ERROR"</code> (DAO-ERR-01).</strong> Obliga a la capa superior a decidir qué hacer.</li>
+            </ol>
+        </div>
+
+
+        <!-- 4.5 SUPUESTOS PENDIENTES -->
+
+        <div class="explanation pending">
+            <strong>Supuestos pendientes:</strong>
+            <ul>
+                <li>[CONFIRMAR] Retornar <code>0</code> o lanzar excepción cuando faltan llaves.</li>
+                <li>[CONFIRMAR] <code>autoCommit</code> o JTA en WebLogic.</li>
+                <li>Requiere verificación: <code>getConnection()</code> de <code>DAOJdbc</code>, tipo de <code>ID_SOLICITUD</code>, nombre de <code>ExcepcionDAO</code> y si es checked.</li>
+            </ul>
+        </div>
+
+
+        <!-- 4.6 IMPACTO -->
+
+        <div class="explanation impact">
+            <strong>Impacto:</strong>
+            <ul>
+                <li>El retorno cambia de <code>String</code> a <code>int</code>: los llamadores que comparan con <code>"OK"</code> o <code>"ERROR"</code> deben cambiar a <code>filas &gt; 0</code>. Llamadores encontrados: requiere verificación con Call Hierarchy.</li>
+                <li>Si <code>ExcepcionDAO</code> es checked, la firma agrega <code>throws</code> y el impacto se extiende a la cadena de llamadores.</li>
+            </ul>
+        </div>
+
+
+        <!-- 4.7 PRUEBA DE REGRESIÓN -->
+
+        <h3 class="subsection-title">Prueba de regresión</h3>
+
+        <div class="description-card">
+            <ol>
+                <li>ID existente → retorna <code>1</code> y el estatus cambia en la tabla.</li>
+                <li>ID inexistente → retorna <code>0</code> sin error.</li>
+                <li>ID nulo o estatus vacío → retorna <code>0</code> sin abrir conexión.</li>
+                <li>Estatus con comillas (<code>O'Brien</code>) → se guarda literal.</li>
+                <li>Error de BD forzado → <code>LOGGER.error</code> sin NSS y la excepción llega a la BI.</li>
+            </ol>
+        </div>
+
+    </section>
+
+    <!-- FIN-MODELO-METODO -->
+
+    <!-- @@SIGUIENTE-METODO@@ -->
+
+
+    <!-- =====================================================
+         5. MÉTODOS SEGUROS 🟢 (una línea por método)
+    ===================================================== -->
+
+    <section class="section" id="seguros">
+
+        <h2 class="section-title">
+            <span class="section-icon">🟢</span>
+            Métodos sin hallazgos
+        </h2>
+
+        <div class="method-safe-line">
+            <span class="badge badge-safe">🟢 Seguro</span>
+            <code>Ningún método en este alcance.</code>
+        </div>
+        <!-- @@SIGUIENTE-SEGURO@@ -->
+
+    </section>
+
+
+    <!-- =====================================================
+         6. PLAN DE REFACTOR PRIORIZADO
+    ===================================================== -->
+
+    <section class="section" id="plan">
+
+        <h2 class="section-title">
+            <span class="section-icon">📋</span>
+            Plan de refactor priorizado
+        </h2>
+
+        <div class="description-card">
+            <ol>
+                <li>Corregir R-SEC y R-LOG (riesgos de seguridad).</li>
+                <li>Migrar este método a try-with-resources con recursos locales y retorno <code>int</code>.</li>
+                <li>Coordinar con la BI el manejo de la transacción y de la excepción.</li>
+                <li>Migrar los demás métodos que usan los campos <code>ps</code>, <code>st</code>, <code>rs</code> y <code>cs</code>.</li>
+                <li>Eliminar los campos y la constante <code>COMMIT</code> cuando ningún método los use.</li>
+            </ol>
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         7. NOTA JAVA 21 (solo informativa)
+    ===================================================== -->
+
+    <section class="section" id="java21">
+
+        <h2 class="section-title">
+            <span class="section-icon">🔭</span>
+            Nota Java 21 (solo informativa)
+        </h2>
+
+        <div class="explanation">
+            Con Java 21 se podría simplificar con <code>var</code>, records para los VO,
+            text blocks para el SQL, switch expressions y <code>List.of</code>.
+            Nada de esto se usa en los bloques Después, que son Java 8.
+        </div>
+
+    </section>
+
+
+</main>
+
+
+<script>
+
+    async function copyCode(button) {
+
+        const card = button.closest(".code-card");
+
+        const code = card
+            .querySelector("code")
+            .textContent;
+
+        try {
+
+            await navigator.clipboard.writeText(code);
+
+        } catch (error) {
+
+            const textarea =
+                document.createElement("textarea");
+
+            textarea.value = code;
+
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+
+            document.body.appendChild(textarea);
+
+            textarea.select();
+
+            document.execCommand("copy");
+
+            document.body.removeChild(textarea);
+        }
+
+
+        const icon =
+            button.querySelector("span");
+
+        const text =
+            button.querySelector(".copy-text");
+
+        icon.textContent = "✓";
+
+        if (text) {
+            text.textContent = "Copiado";
+        }
+
+        button.classList.add("copied");
+
+
+        setTimeout(() => {
+
+            icon.textContent = "📋";
+
+            if (text) {
+                text.textContent = "Copiar";
+            }
+
+            button.classList.remove("copied");
+
+        }, 2000);
+
+    }
+
+</script>
+
+
+</body>
+
+</html>
