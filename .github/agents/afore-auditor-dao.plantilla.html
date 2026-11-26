@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 =========================================================================
- PLANTILLA DEL REPORTE · afore-auditor-dao v3
+ PLANTILLA DEL REPORTE · afore-auditor-dao v3.1
  Ubicación en el workspace: .github/agents/afore-auditor-dao.plantilla.html
 
  Instrucciones para el agente (no se copian al reporte):
@@ -11,6 +11,9 @@
     Los nuevos métodos se insertan justo antes del marcador @@SIGUIENTE-METODO@@.
     Las entradas del índice se insertan justo antes de @@SIGUIENTE-INDICE@@.
  4. No borres los marcadores @@...@@: permiten agregar lotes al mismo archivo.
+    Los imports agregados se insertan justo antes de @@SIGUIENTE-IMPORT@@.
+    La alerta de dependencia inexistente se copia del bloque MODELO-ALERTA-DEPENDENCIA
+    al inicio de la tarjeta del método, solo cuando aplica (DAO-DEP-01).
  5. Escapa SIEMPRE en el texto: & como &amp;  < como &lt;  > como &gt;
     (en <pre><code>, en celdas de tabla, en listas y en párrafos).
  6. Autocontenido: no agregues CDN, fuentes externas, imágenes ni scripts externos.
@@ -673,6 +676,63 @@
             }
         }
 
+        /* =====================================================
+           AGREGADO v3.1 · ALERTAS
+        ===================================================== */
+
+        .alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 0 0 18px;
+            padding: 14px 18px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .alert-icon {
+            flex-shrink: 0;
+            font-size: 1.1rem;
+            line-height: 1.4;
+        }
+
+        .alert strong {
+            color: var(--text);
+        }
+
+        .alert-critical {
+            border-color: rgba(255, 95, 86, 0.55);
+            border-left: 4px solid var(--critical);
+            background: var(--critical-bg);
+            color: #ffb3ae;
+        }
+
+        .alert-warning {
+            border-color: rgba(255, 189, 46, 0.45);
+            border-left: 4px solid var(--warning);
+            background: var(--warning-bg);
+            color: #ffe1a0;
+        }
+
+        .alert code {
+            padding: 1px 5px;
+            border-radius: 4px;
+            background: #1e232d;
+            color: #d8dee9;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 0.82em;
+        }
+
+        .alerts-summary {
+            margin-top: 15px;
+        }
+
+        .alerts-summary .alert {
+            margin-bottom: 10px;
+        }
+
         /* Agregado v3: impresión / exportación a PDF */
 
         @media print {
@@ -723,7 +783,7 @@
 
         <p class="project-description">
             Reporte de auditoría de solo lectura generado por el agente
-            afore-auditor-dao v3. Contiene los hallazgos por método, el código
+            afore-auditor-dao v3.1. Contiene los hallazgos por método, el código
             antes y después de la reestructuración (Java 8) y el plan de refactor.
             El código fuente no fue modificado.
         </p>
@@ -764,7 +824,7 @@
 
         <div class="info-card">
             <span class="info-label">Agente</span>
-            <span class="info-value">afore-auditor-dao v3</span>
+            <span class="info-value">afore-auditor-dao v3.1</span>
         </div>
 
     </section>
@@ -786,7 +846,7 @@
         <div class="stats">
 
             <div class="stat-card stat-critical">
-                <span class="stat-number">7</span>
+                <span class="stat-number">8</span>
                 <span class="stat-label">🔴 Hallazgos críticos</span>
             </div>
 
@@ -809,6 +869,18 @@
                 <li>Recursos JDBC como campos de la clase, que impiden el cierre correcto y no son seguros entre hilos.</li>
                 <li>El NSS se registra en los logs.</li>
             </ol>
+        </div>
+
+        <!-- Avisos v3.1: imports agregados (🟡) y dependencias inexistentes (🔴). Si no hay, se indica "ninguno". -->
+        <div class="alerts-summary">
+            <div class="alert alert-warning">
+                <span class="alert-icon">🟡</span>
+                <span><strong>Imports agregados: 1.</strong> La propuesta requiere <code>import java.sql.Connection;</code>, que la clase no tiene. Ver <a href="#imports">Imports agregados</a>.</span>
+            </div>
+            <div class="alert alert-critical">
+                <span class="alert-icon">🔴</span>
+                <span><strong>Dependencias inexistentes: 0.</strong> Todos los métodos llamados se encontraron en la clase o en su jerarquía.</span>
+            </div>
         </div>
 
     </section>
@@ -861,9 +933,52 @@ private static final String COMMIT = "COMMIT"; // DAO-TX-01: queda sin uso</code
                 <li><strong>Por qué:</strong> un campo de instancia vive mientras viva el objeto DAO, no mientras dure el método. Si un método abre <code>ps</code> y otro lo reasigna antes de cerrarlo, el primer <code>PreparedStatement</code> queda abierto. Try-with-resources solo cierra variables declaradas en su propio encabezado.</li>
                 <li><strong><code>COMMIT</code>:</strong> la constante solo existe para <code>st.execute(COMMIT)</code>. Al corregir DAO-TX-01 se convierte en código muerto.</li>
                 <li><strong>Cuándo eliminarlos:</strong> cuando todos los métodos estén migrados. Métodos que aún los usan: requiere verificación con la búsqueda de referencias de cada campo.</li>
+                <li><strong>Atributo <code>conexion</code> (DAO-CON-01):</strong> la clase guarda la conexión en <code>this.conexion</code>. Como <code>getConnection()</code> entrega una conexión nueva del pool en cada llamada, guardarla en un atributo impide cerrarla y deja sesiones activas en Oracle. Se elimina cuando ningún método lo use.</li>
                 <li><strong>Niveles de log (DAO-LOG-01):</strong> el éxito se registra con <code>LOGGER.error</code> y el error con <code>LOGGER.info</code>. La convención es la inversa.</li>
                 <li><strong>Imports sin uso (R-SON · S1128):</strong> ninguno detectado. Si existieran, se listan aquí y no se eliminan.</li>
             </ul>
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         2.1 IMPORTS AGREGADOS (v3.1 · solo lista cerrada java.sql)
+         El agente NO edita el .java: el programador agrega estos imports al aplicar la propuesta.
+         Si no hay, una sola fila: "No se requieren imports nuevos".
+    ===================================================== -->
+
+    <section class="section" id="imports">
+
+        <h2 class="section-title">
+            <span class="section-icon">📦</span>
+            Imports agregados
+        </h2>
+
+        <p class="section-description">
+            Solo se permiten <code>java.sql.Connection</code>, <code>java.sql.PreparedStatement</code>,
+            <code>java.sql.ResultSet</code> y <code>java.sql.SQLException</code>, cuando la clase no los tiene
+            y el Después los necesita.
+        </p>
+
+        <div class="table-wrapper">
+            <table class="findings">
+                <thead>
+                    <tr>
+                        <th>Import</th>
+                        <th>Motivo</th>
+                        <th>Métodos que lo usan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="rule"><code>import java.sql.Connection;</code></td>
+                        <td>Declarar <code>Connection con = getConnection()</code> en el encabezado del try-with-resources (DAO-CON-01).</td>
+                        <td><a href="#m-actualizarEstatusSolicitud"><code>actualizarEstatusSolicitud</code></a></td>
+                    </tr>
+                    <!-- @@SIGUIENTE-IMPORT@@ -->
+                </tbody>
+            </table>
         </div>
 
     </section>
@@ -898,6 +1013,13 @@ private static final String COMMIT = "COMMIT"; // DAO-TX-01: queda sin uso</code
     <!-- INICIO-MODELO-METODO · copiar este bloque completo por cada método 🔴 o 🟡 -->
 
     <section class="section method" id="m-actualizarEstatusSolicitud">
+
+        <!-- MODELO-ALERTA-DEPENDENCIA (v3.1) · copiar aquí, al inicio de la tarjeta, SOLO si el método llama a un método inexistente:
+        <div class="alert alert-critical">
+            <span class="alert-icon">🔴</span>
+            <span><strong>DAO-DEP-01 · Dependencia inexistente:</strong> el método llama a <code>nombreMetodo(...)</code>, que no existe en la clase, en su jerarquía ni en el workspace. Requiere verificación antes de aplicar la propuesta.</span>
+        </div>
+        -->
 
         <h2 class="section-title">
             <span class="section-icon">🔴</span>
@@ -944,9 +1066,16 @@ private static final String COMMIT = "COMMIT"; // DAO-TX-01: queda sin uso</code
                     </tr>
                     <tr>
                         <td><span class="badge badge-critical">🔴 Alta</span></td>
+                        <td class="rule">DAO-CON-01</td>
+                        <td><code>this.conexion.getConnection()</code></td>
+                        <td>La conexión se toma del atributo y nunca se cierra; la sesión queda activa en Oracle</td>
+                        <td><code>Connection con = getConnection()</code> en el encabezado del try</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-critical">🔴 Alta</span></td>
                         <td class="rule">R-REC · S2095</td>
-                        <td><code>getConnection()</code> y <code>finally</code></td>
-                        <td>La <code>Connection</code> nunca se cierra; cierre manual en <code>finally</code></td>
+                        <td><code>finally</code></td>
+                        <td>Cierre manual con <code>cierreConexiones(...)</code> en <code>finally</code></td>
                         <td>Un solo try-with-resources</td>
                     </tr>
                     <tr>
@@ -1003,14 +1132,49 @@ private static final String COMMIT = "COMMIT"; // DAO-TX-01: queda sin uso</code
         </div>
 
 
+        <!-- 4.1.1 DEPENDENCIAS (v3.1 · DAO-DEP-01) -->
+
+        <h3 class="subsection-title">Dependencias</h3>
+
+        <div class="table-wrapper">
+            <table class="findings">
+                <thead>
+                    <tr>
+                        <th>Estado</th>
+                        <th>Método llamado</th>
+                        <th>Ubicación</th>
+                        <th>Observación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-warning">🟡 Verificar</span></td>
+                        <td class="rule"><code>cierreConexiones(rs, ps, st)</code></td>
+                        <td>Heredado de <code>DAOJdbc</code> (solo <code>.class</code>)</td>
+                        <td>Se elimina en el Después: lo sustituye el try-with-resources (R-REC). Requiere verificación de que no haga otra cosa además de cerrar.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-safe">🟢 Existe</span></td>
+                        <td class="rule"><code>esVacio(String)</code></td>
+                        <td>Mismo DAO · auxiliar nuevo de la propuesta</td>
+                        <td>Método privado propuesto junto con este Después; no abre conexión.</td>
+                    </tr>
+                    <!-- Casos: 🟢 Existe (mismo DAO, enlazar a su tarjeta con href="#m-nombre") · 🟡 Verificar (heredado u otra clase)
+                         · 🟡 DAO-DEP-01 (abre otra conexión en un ciclo o dentro del try del llamador) · 🔴 No existe (dependencia inexistente) -->
+                </tbody>
+            </table>
+        </div>
+
+
         <!-- 4.2 ANTES / DESPUÉS -->
 
         <h3 class="subsection-title">Antes y después</h3>
 
         <p class="section-description">
             El Antes es el método completo tal como se encuentra, con los campos que usa.
-            El Después es el método completo reestructurado en Java 8, sin imports nuevos,
+            El Después es el método completo reestructurado en Java 8, sin imports fuera de la lista cerrada de java.sql,
             con los comentarios originales conservados y un comentario con el ID de regla en cada cambio.
+            Los imports que requiere se listan en <a href="#imports">Imports agregados</a>.
         </p>
 
         <div class="comparison">
@@ -1118,8 +1282,9 @@ public int actualizarEstatusSolicitud(SolicitudVO vo) {
         return 0;
     }
 
-    // R-REC y DAO-ESTADO-01: un solo try-with-resources con Connection y
-    // PreparedStatement locales; se cierran solos, aun si ocurre una excepción.
+    // DAO-CON-01, R-REC y DAO-ESTADO-01: un solo try-with-resources con Connection y
+    // PreparedStatement locales; getConnection() entrega una conexión nueva del pool
+    // y se cierra sola, aun si ocurre una excepción. Nunca this.conexion.
     try (Connection con = getConnection();
          PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -1164,9 +1329,11 @@ private static boolean esVacio(String valor) {
 
         <div class="explanation">
             <strong>Verificación del Después:</strong>
-            Java 8 ✓ · Sin imports nuevos ✓ · Sin clases de armado de SQL ✓ ·
+            Java 8 ✓ · Imports solo de la lista cerrada ✓ · Sin clases de armado de SQL ✓ ·
             <code>final String sql</code> fuera del try ✓ · Un solo try-with-resources ✓ ·
-            Comentarios originales conservados: 0 de 0 ✓
+            Comentarios originales conservados: 0 de 0 ✓ ·
+            Sin patrones DAO-CON-01 (<code>this.conexion</code>, <code>isClosed()</code>) ✓ ·
+            Imports agregados: <code>java.sql.Connection</code>
         </div>
 
 
@@ -1178,6 +1345,7 @@ private static boolean esVacio(String valor) {
             <ol>
                 <li><strong>SQL con <code>?</code> (R-SEC).</strong> El estatus se concatenaba entre comillas: un valor como <code>X' WHERE 1=1 --</code> actualizaría todas las solicitudes. Con parámetros, Oracle trata el valor como dato y reutiliza el plan de ejecución.</li>
                 <li><strong>Validación antes del <code>try</code> (DAO-VAL-01).</strong> Evita ocupar una conexión del pool para descubrir que faltaban datos. Se eligió <code>return 0</code> porque cumple el contrato sin cambiar el flujo de los llamadores.</li>
+                <li><strong>Conexión local (DAO-CON-01).</strong> <code>getConnection()</code> entrega una conexión nueva del pool en cada llamada. Tomarla de <code>this.conexion</code> impedía cerrarla y dejaba la sesión activa. Ahora se declara en el encabezado del try, aunque eso requiera agregar <code>import java.sql.Connection</code>.</li>
                 <li><strong>Un solo try-with-resources (R-REC, DAO-ESTADO-01).</strong> <code>Connection</code> y <code>PreparedStatement</code> se declaran juntos en el encabezado; Java los cierra en orden inverso, también con excepción. Se eliminan <code>cierreConexiones(...)</code> y el <code>finally</code>.</li>
                 <li><strong><code>executeUpdate()</code> y retorno <code>int</code> (DAO-EXEC-01, DAO-RET-01).</strong> <code>execute()</code> indica si hay un <code>ResultSet</code>, no si se actualizó algo. <code>executeUpdate()</code> devuelve las filas afectadas.</li>
                 <li><strong>Sin <code>COMMIT</code> textual (DAO-TX-01).</strong> El segundo <code>Statement</code> nunca se cerraba y decidía la transacción desde el DAO.</li>
@@ -1194,7 +1362,7 @@ private static boolean esVacio(String valor) {
             <ul>
                 <li>[CONFIRMAR] Retornar <code>0</code> o lanzar excepción cuando faltan llaves.</li>
                 <li>[CONFIRMAR] <code>autoCommit</code> o JTA en WebLogic.</li>
-                <li>Requiere verificación: <code>getConnection()</code> de <code>DAOJdbc</code>, tipo de <code>ID_SOLICITUD</code>, nombre de <code>ExcepcionDAO</code> y si es checked.</li>
+                <li>Requiere verificación: tipo de <code>ID_SOLICITUD</code>, nombre de <code>ExcepcionDAO</code> y si es checked, y qué hace <code>cierreConexiones</code> en <code>DAOJdbc</code>.</li>
             </ul>
         </div>
 
@@ -1267,8 +1435,9 @@ private static boolean esVacio(String valor) {
                 <li>Corregir R-SEC y R-LOG (riesgos de seguridad).</li>
                 <li>Migrar este método a try-with-resources con recursos locales y retorno <code>int</code>.</li>
                 <li>Coordinar con la BI el manejo de la transacción y de la excepción.</li>
-                <li>Migrar los demás métodos que usan los campos <code>ps</code>, <code>st</code>, <code>rs</code> y <code>cs</code>.</li>
-                <li>Eliminar los campos y la constante <code>COMMIT</code> cuando ningún método los use.</li>
+                <li>Agregar los imports listados en <a href="#imports">Imports agregados</a>.</li>
+                <li>Migrar los demás métodos que usan los campos <code>ps</code>, <code>st</code>, <code>rs</code>, <code>cs</code> y <code>conexion</code>.</li>
+                <li>Eliminar los campos, el atributo <code>conexion</code> y la constante <code>COMMIT</code> cuando ningún método los use.</li>
             </ol>
         </div>
 
