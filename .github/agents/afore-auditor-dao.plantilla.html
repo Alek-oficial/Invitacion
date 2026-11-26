@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 =========================================================================
- PLANTILLA DEL REPORTE · afore-auditor-dao v3.1
+ PLANTILLA DEL REPORTE · afore-auditor-dao v3
  Ubicación en el workspace: .github/agents/afore-auditor-dao.plantilla.html
 
  Instrucciones para el agente (no se copian al reporte):
@@ -677,7 +677,7 @@
         }
 
         /* =====================================================
-           AGREGADO v3.1 · ALERTAS
+           AGREGADO v3 · ALERTAS
         ===================================================== */
 
         .alert {
@@ -783,7 +783,7 @@
 
         <p class="project-description">
             Reporte de auditoría de solo lectura generado por el agente
-            afore-auditor-dao v3.1. Contiene los hallazgos por método, el código
+            afore-auditor-dao v3. Contiene los hallazgos por método, el código
             antes y después de la reestructuración (Java 8) y el plan de refactor.
             El código fuente no fue modificado.
         </p>
@@ -824,7 +824,7 @@
 
         <div class="info-card">
             <span class="info-label">Agente</span>
-            <span class="info-value">afore-auditor-dao v3.1</span>
+            <span class="info-value">afore-auditor-dao v3</span>
         </div>
 
     </section>
@@ -871,7 +871,7 @@
             </ol>
         </div>
 
-        <!-- Avisos v3.1: imports agregados (🟡) y dependencias inexistentes (🔴). Si no hay, se indica "ninguno". -->
+        <!-- Avisos v3: imports agregados (🟡) y dependencias inexistentes (🔴). Si no hay, se indica "ninguno". -->
         <div class="alerts-summary">
             <div class="alert alert-warning">
                 <span class="alert-icon">🟡</span>
@@ -943,7 +943,7 @@ private static final String COMMIT = "COMMIT"; // DAO-TX-01: queda sin uso</code
 
 
     <!-- =====================================================
-         2.1 IMPORTS AGREGADOS (v3.1 · solo lista cerrada java.sql)
+         2.1 IMPORTS AGREGADOS (v3 · solo lista cerrada java.sql y java.util.List/ArrayList)
          El agente NO edita el .java: el programador agrega estos imports al aplicar la propuesta.
          Si no hay, una sola fila: "No se requieren imports nuevos".
     ===================================================== -->
@@ -957,8 +957,8 @@ private static final String COMMIT = "COMMIT"; // DAO-TX-01: queda sin uso</code
 
         <p class="section-description">
             Solo se permiten <code>java.sql.Connection</code>, <code>java.sql.PreparedStatement</code>,
-            <code>java.sql.ResultSet</code> y <code>java.sql.SQLException</code>, cuando la clase no los tiene
-            y el Después los necesita.
+            <code>java.sql.ResultSet</code>, <code>java.sql.SQLException</code>, <code>java.util.List</code>
+            y <code>java.util.ArrayList</code>, cuando la clase no los tiene y el Después los necesita.
         </p>
 
         <div class="table-wrapper">
@@ -1014,7 +1014,7 @@ private static final String COMMIT = "COMMIT"; // DAO-TX-01: queda sin uso</code
 
     <section class="section method" id="m-actualizarEstatusSolicitud">
 
-        <!-- MODELO-ALERTA-DEPENDENCIA (v3.1) · copiar aquí, al inicio de la tarjeta, SOLO si el método llama a un método inexistente:
+        <!-- MODELO-ALERTA-DEPENDENCIA (v3) · copiar aquí, al inicio de la tarjeta, SOLO si el método llama a un método inexistente:
         <div class="alert alert-critical">
             <span class="alert-icon">🔴</span>
             <span><strong>DAO-DEP-01 · Dependencia inexistente:</strong> el método llama a <code>nombreMetodo(...)</code>, que no existe en la clase, en su jerarquía ni en el workspace. Requiere verificación antes de aplicar la propuesta.</span>
@@ -1132,7 +1132,7 @@ private static final String COMMIT = "COMMIT"; // DAO-TX-01: queda sin uso</code
         </div>
 
 
-        <!-- 4.1.1 DEPENDENCIAS (v3.1 · DAO-DEP-01) -->
+        <!-- 4.1.1 DEPENDENCIAS (v3 · DAO-DEP-01) -->
 
         <h3 class="subsection-title">Dependencias</h3>
 
@@ -1325,12 +1325,16 @@ private static boolean esVacio(String valor) {
         </div>
 
 
-        <!-- 4.3 VERIFICACIÓN DEL DESPUÉS (sección 14 del agente) -->
+        <!-- 4.3 VERIFICACIÓN DEL DESPUÉS (sección 14 del agente, 15 puntos).
+             Con varias consultas se escribe, por ejemplo: "Forma B (12 consultas, una conexión) ✓ · ResultSet cerrado antes de la siguiente consulta ✓ ·
+             Statement fuera del ciclo ✓ · Transacción copiada del original ✓ · Llamada a ejecutarProceso() fuera del try de la conexión ✓". -->
 
         <div class="explanation">
             <strong>Verificación del Después:</strong>
             Java 8 ✓ · Imports solo de la lista cerrada ✓ · Sin clases de armado de SQL ✓ ·
-            <code>final String sql</code> fuera del try ✓ · Un solo try-with-resources ✓ ·
+            <code>final String sql</code> justo antes y fuera del try ✓ · Forma A (una consulta, un solo try-with-resources) ✓ ·
+            Varias consultas: no aplica · Transacción: no aplica · Errores: sin catch por consulta ✓ ·
+            Llamadas a otros métodos: no aplica ·
             Comentarios originales conservados: 0 de 0 ✓ ·
             Sin patrones DAO-CON-01 (<code>this.conexion</code>, <code>isClosed()</code>) ✓ ·
             Imports agregados: <code>java.sql.Connection</code>
