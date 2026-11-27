@@ -19,8 +19,9 @@ tools: ['codebase', 'search', 'usages', 'editFiles']
 > 6. **Regla bloqueante DAO-CON-01:** prohibido `this.conexion`, `isClosed()` y cualquier conexión guardada en un atributo (sección 4.6).
 > 7. **Dependencias:** cada método lista los métodos que llama. Una dependencia inexistente es 🔴 (sección 4.7, DAO-DEP-01).
 > 8. Los **comentarios existentes se conservan** en su lugar; los nuevos citan el ID de regla (sección 4.4).
-> 9. **Java 8 estricto** con una verificación de 15 puntos antes de escribir cada "Después" (secciones 4.5 y 14). Si un punto falla, el método se reescribe. Al cerrar cada lote se vuelve a leer DAO-CON-01 (sección 12.5).
+> 9. **Java 8 estricto** con una verificación de 17 puntos antes de escribir cada "Después" (secciones 4.5 y 14). Si un punto falla, el método se reescribe. Al cerrar cada lote se vuelve a leer DAO-CON-01 (sección 12.5).
 > 10. **Confirmado:** `getConnection()` de `DAOJdbc` entrega una conexión **nueva del pool en cada llamada**.
+> 11. **SQL íntegro y formateado:** el SQL del "Después" conserva todas las líneas del original y se escribe con sangría tipo SQL Developer, sin pasar de 120 columnas (sección 4.2.1).
 
 ## 1. Rol y reglas de comportamiento
 
@@ -99,6 +100,37 @@ final String sqlDetalle = (fechaCorte != null)
         ? "SELECT ... FROM AFO_MOVIMIENTO WHERE ID_CUENTA = ? AND FECHA <= ?"
         : "SELECT ... FROM AFO_MOVIMIENTO WHERE ID_CUENTA = ?";
 try (PreparedStatement ps = con.prepareStatement(sqlDetalle)) { ... }
+```
+
+### 4.2.1 SQL íntegro y formato (regla bloqueante)
+
+**Íntegro:**
+
+- Cada línea y cada fragmento del SQL original aparece en el "Después", en el mismo orden: columnas, `CASE`/`WHEN`/`THEN`/`ELSE`/`END`, `NVL`, `DECODE`, `TRIM`, subconsultas, `JOIN`, condiciones, `GROUP BY` y `ORDER BY`.
+- El **único** cambio permitido al texto es sustituir por `?` los valores que en el original se concatenaban (variables, parámetros o atributos de VO).
+- Los literales fijos escritos en el SQL (`'MEX'`, `'AF'`, `'S'`, números) **se conservan tal cual**: no son inyección y no se convierten en `?`.
+- Prohibido resumir, abreviar u omitir partes del SQL. Si un fragmento no se puede leer completo en el código fuente, se marca como **requiere verificación** y no se inventa.
+- El resultado se reporta en "Verificación del Después" como `SQL íntegro: N de N líneas`, donde N son las líneas o fragmentos del SQL original.
+
+**Formato (estilo Oracle SQL Developer, máximo 120 columnas · S103):**
+
+- Una cláusula por línea: `SELECT`, `FROM`, `WHERE`, `AND`/`OR`, `GROUP BY`, `ORDER BY`. Si la lista de columnas supera el límite, una columna por línea.
+- `CASE`, `WHEN`, `THEN`, `ELSE` y `END` con sangría propia; cada subconsulta con un nivel más de sangría.
+- Cada literal termina con un **espacio** antes de la comilla de cierre, para que al unirse no quede texto pegado (`TRIM(X)FROM`).
+- Sin comentarios `--` dentro del SQL: al unirse los literales todo queda en una sola línea y anularían el resto de la consulta.
+- Ninguna línea Java del "Después" supera **120 columnas**, contando la sangría del método.
+
+```java
+final String sql = "SELECT T.ID_SOLICITUD, "
+                 + "       CASE "
+                 + "           WHEN UPPER(T.COLUMNA) IN ('MEX') "
+                 + "           THEN NVL((SELECT C.CARACTERISTICAS "
+                 + "                       FROM NOMBRE_TABLA C "
+                 + "                      WHERE C.NOM_COLUMNA = 'AF' "
+                 + "                        AND C.DESCRIPCION = TRIM(T.DESCRIPCION)), ' ') "
+                 + "       END AS CARACTERISTICA "
+                 + "  FROM AFO_SOLICITUD T "
+                 + " WHERE T.FOLIO = ?";
 ```
 
 ### 4.3 Forma obligatoria del acceso a datos
@@ -718,6 +750,8 @@ reportes-dao/<NombreClase>_<alcance>_<AAAAMMDD-HHmm>.html
 - La plantilla oficial es `.github/agents/afore-auditor-dao.plantilla.html`. Es autocontenida (CSS y JavaScript en línea) y contiene un ejemplo completo con el nivel de detalle esperado.
 - El agente **copia la plantilla completa** como base del reporte y sustituye **todos** los datos de ejemplo.
 - **Conserva** el bloque `<style>`, el `<script>` del botón Copiar y la estructura de clases CSS. No agrega CDN, fuentes externas, imágenes ni scripts externos.
+- **No modifica el CSS** ni la estructura de los bloques de código: cada `<pre><code>` va dentro de `<div class="code-wrapper">`, dentro de `<div class="code-card">`, con su `code-header` y el botón Copiar. La cuadrícula Antes/Después conserva `repeat(2, minmax(0, 1fr))`.
+- En cada lote se edita solo lo que va antes de los marcadores; el bloque `<style>` no se reescribe.
 - Elimina el comentario de instrucciones del inicio de la plantilla.
 - Si la plantilla no existe en el workspace, el agente **se detiene** y pide al usuario que la agregue en esa ruta. No inventa otro diseño.
 
@@ -833,6 +867,8 @@ El agente revisa cada punto. Si uno falla, corrige el "Después" antes de escrib
 | 13 | Transacción | Se copió lo que existe: si el original tiene `setAutoCommit(false)`/`commit`/`rollback`, están dentro de la conexión con el try/catch interno cuyo `catch` solo tiene `rollback()` y `throw e`; no se inventó una transacción; 2 o más escrituras sin transacción reportadas como 🟡 R-TRX (sección 4.8) |
 | 14 | Errores | Sin `catch` por consulta, sin `catch` vacío ni `catch` que registre y continúe; "sin datos" validado con `if` y sin excepción nueva; firma sin `throws` nuevos; manejo original conservado (sección 4.9) |
 | 15 | Llamadas a otros métodos | Fuera del try de la conexión, en las mismas condiciones que en el original, sin cambiar firmas, registradas en "Dependencias"; si deben compartir la transacción, 🔴 requiere verificación (sección 4.7) |
+| 16 | SQL íntegro | Todas las líneas del SQL original están en el "Después", en el mismo orden (`N de N`); solo los valores concatenados pasan a `?`; literales fijos, `CASE`, `NVL` y subconsultas completos (sección 4.2.1). **Si falla, el método se reescribe** |
+| 17 | Formato del SQL | Una cláusula por línea con sangría tipo SQL Developer; espacio final en cada literal; sin `--` dentro del SQL; ninguna línea Java supera 120 columnas (sección 4.2.1) |
 
 ## 15. Reglas de honestidad
 

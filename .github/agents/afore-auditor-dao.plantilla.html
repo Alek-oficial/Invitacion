@@ -733,6 +733,25 @@
             margin-bottom: 10px;
         }
 
+        /* Agregado: respaldo para líneas largas (botón Copiar y scroll siempre visibles) */
+
+        .comparison > div {
+            min-width: 0;
+        }
+
+        .code-card {
+            max-width: 100%;
+        }
+
+        .copy-button {
+            flex-shrink: 0;
+        }
+
+        .code-card > pre {
+            min-width: 0;
+            overflow-x: auto;
+        }
+
         /* Agregado v3: impresión / exportación a PDF */
 
         @media print {
@@ -1325,7 +1344,7 @@ private static boolean esVacio(String valor) {
         </div>
 
 
-        <!-- 4.3 VERIFICACIÓN DEL DESPUÉS (sección 14 del agente, 15 puntos).
+        <!-- 4.3 VERIFICACIÓN DEL DESPUÉS (sección 14 del agente, 17 puntos).
              Con varias consultas se escribe, por ejemplo: "Forma B (12 consultas, una conexión) ✓ · ResultSet cerrado antes de la siguiente consulta ✓ ·
              Statement fuera del ciclo ✓ · Transacción copiada del original ✓ · Llamada a ejecutarProceso() fuera del try de la conexión ✓". -->
 
@@ -1336,6 +1355,7 @@ private static boolean esVacio(String valor) {
             Varias consultas: no aplica · Transacción: no aplica · Errores: sin catch por consulta ✓ ·
             Llamadas a otros métodos: no aplica ·
             Comentarios originales conservados: 0 de 0 ✓ ·
+            SQL íntegro: 1 de 1 líneas ✓ · SQL formateado, máximo 120 columnas ✓ ·
             Sin patrones DAO-CON-01 (<code>this.conexion</code>, <code>isClosed()</code>) ✓ ·
             Imports agregados: <code>java.sql.Connection</code>
         </div>
